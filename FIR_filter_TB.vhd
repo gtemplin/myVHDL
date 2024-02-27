@@ -127,7 +127,7 @@ end process sobel_xy_coefs;
 
 -- Load in the pixels 
 take_pixel_inputs: process(clk)
-    variable pixel_count: INTEGER RANGE 0 to 4352 := 0; --to index (4096)+256
+    variable pixel_count: INTEGER RANGE 0 to 4096 := 0; 
     variable lread: LINE; -- read from some file 
     variable wasRead: STD_LOGIC_VECTOR(7 DOWNTO 0):= (others => '0'); 
 begin
@@ -145,31 +145,22 @@ begin
     end if;
 end process take_pixel_inputs;
 
+-- Write pixels to the output 
 writeOut: process(clk)
     variable lwrite: LINE; -- write to some file
     variable toWrite: SIGNED(7 DOWNTO 0) := (others => '0');
     variable counter: INTEGER RANGE 0 to 4500 := 0;
     variable linesWritten: INTEGER RANGE 0 to 4097 := 0;
 BEGIN
-
     if rising_edge(clk) then 
         if int_run='1' THEN 
             counter := counter + 1;
-        end if; 
-        if counter >= 256 AND counter < 4352 then -- needs four lines of convolved inputs to fill the buffers 
             -- Write output to file 
             toWrite := y(7 DOWNTO 0);
             WRITE(lwrite, STD_LOGIC_VECTOR(toWRITE));
             WRITELINE(fwrite,lwrite);
             linesWritten := linesWritten + 1; 
-            --assert linesWritten <= 4096;
-            if linesWritten > 4096 then
-                report "Exceeded max # of lines: linesWritten = " & integer'image(linesWritten);
-                report "Counter value = " & integer'image(counter);
-            end if;
-            --severity error;
         end if; 
-    end if; 
+    end if; -- end write edge-triggered process 
 end process writeOut;
-
 end Behavioral;
