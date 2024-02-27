@@ -18,9 +18,9 @@ ARCHITECTURE Behavioral OF FIR_Vertical IS
 --SIGNAL  m: INTEGER := 9;  --number of bits per coefficient and x_input data
 --SIGNAL pixperline: INTEGER := 64; --number of pixels per video line (viewable pixels)
 TYPE internal_coef_array IS ARRAY (1 TO 3) OF SIGNED(8 DOWNTO 0); 
-TYPE internal_pix_array IS ARRAY (1 TO ((2)*64 + 1)) OF SIGNED(8 DOWNTO 0); --bigger array
+TYPE internal_pix_array IS ARRAY (1 TO ((2)*64 + 1)) OF SIGNED(8 DOWNTO 0); --bigger array 129 array, each element 9-bits
 SIGNAL c: internal_coef_array := ("000000001","000000010","000000001");--stored coefficients
-SIGNAL x: internal_pix_array; --stored input values
+SIGNAL x: internal_pix_array; --stored input values (stores a whole line)
 BEGIN
 PROCESS (clk, rst)
     VARIABLE prod, acc: SIGNED(17 DOWNTO 0) := (OTHERS=>'0');
@@ -30,7 +30,7 @@ PROCESS (clk, rst)
         IF (rst='0') THEN
             FOR i IN 1 TO ((2)*64+1) LOOP --put in n-1 lines
                 FOR j IN 8 DOWNTO 0 LOOP
-                    x(i)(j) <= '0';
+                    x(i)(j) <= '0'; -- internal array set to zero 
                 END LOOP;
             END LOOP;
         --Shift registers:-----------------------
@@ -38,14 +38,14 @@ PROCESS (clk, rst)
 --            IF (load='1') THEN
 --                c <= (coef_input & c(1 TO n-1));
 --            ELSIF (run='1') THEN
-              IF (run='1') THEN
-                x <= (x_input & x(1 TO ((2)*64)));  -- change to store n-1 lines
+              IF (run='1') THEN -- set x to the current input & the last two lines worth of pixels (shift register)
+                x <= (x_input & x(1 TO ((2)*64)));  -- change to store n-1 lines 
             END IF;
         END IF;
         -- MACs and output (w/ overflow check): ---
         acc := (OTHERS=>'0');
         FOR i IN 1 TO 3 LOOP
-            prod := x((i-1)*64+1)*c(i);  -- the main change from the horizontal filter!
+            prod := x((i-1)*64+1)*c(i);  -- x(1)*c(1) + x(65)*c(2) + x(129)*c(3)
             sign_prod := prod(17);
             sign_acc := acc(17);
             acc := prod + acc;
