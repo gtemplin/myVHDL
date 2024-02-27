@@ -60,6 +60,8 @@ BEGIN
         END IF; 
     END PROCESS horizontal;
 
+
+
     vertical: PROCESS (clk, rst)-- vertical
         VARIABLE prod, acc: SIGNED(2*m-1 DOWNTO 0) := (OTHERS=>'0');
         VARIABLE sign_prod, sign_acc: STD_LOGIC;
@@ -93,7 +95,6 @@ BEGIN
                         acc := prod + acc;
                     END LOOP;
                 END IF; -- added
-
             END IF; --end run/load
         END IF; --end rst/clk
         IF rising_edge(clk) THEN
@@ -102,5 +103,3 @@ BEGIN
     END PROCESS vertical;
 END Behavioral;
 -----------------------------------------------------------------
-
-
